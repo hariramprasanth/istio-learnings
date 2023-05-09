@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ratings
+spec:
+  hosts:
+  - ratings
+  http:
+  - match:
+    - headers:
+        end-user:
+          exact: hari
+    fault:
+      abort:
+        percentage:
+          value: 100.0
+        httpStatus: 500
+    route:
+    - destination:
+        host: ratings
+  - match:
+    - headers:
+        end-user:
+          exact: hari
+    fault:
+      delay:
+        percent: 100
+        fixedDelay: 20s
+    route:
+    - destination:
+        host: ratings
+  - route:
+    - destination:
+        host: ratings
