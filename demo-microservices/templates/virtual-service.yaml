@@ -5,15 +5,13 @@ metadata:
 spec:
   hosts:
   - "*"
+  {{- if .Values.gateway.enabled }}
   gateways:
     - {{ .Values.gateway.name }}
+  {{- end}}
   http:
   - route:
     - destination:
-        host: {{ .Values.name }}
+        host: {{ .Values.virtualService.destinationHost }}
         port: 
           number: 80
-        #subset: v1
-    #retries:
-      #attempts: 5
-      #perTryTimeout: 2s
