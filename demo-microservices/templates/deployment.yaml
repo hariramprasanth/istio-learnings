@@ -28,16 +28,19 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Values.name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          #env : 
-          #- ORDERS_SERVICE_BASE_PATH : http://orders-service:9001
+          {{- if .Values.envVariable.exist }}
+          env:
+          - name: {{ .Values.envVariable.name }}
+            value: {{ .Values.envVariable.value }}
+          {{- end }}
           ports:
             - name: http
-              containerPort: 9001
+              containerPort: {{ .Values.containerPort }}
               protocol: TCP
           livenessProbe:
             httpGet:
