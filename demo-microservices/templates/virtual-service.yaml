@@ -15,3 +15,8 @@ spec:
         host: {{ .Values.virtualService.destinationHost }}
         port: 
           number: 80
+    retries:
+      attempts: 5
+      perTryTimeout: 20s
+      retryOn: connect-failure,refused-stream,503
+    timeout: 50s
