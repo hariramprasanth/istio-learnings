@@ -11,13 +11,5 @@ spec:
   - route:
     - destination:
         host: nginx-service
-        subset: v1
-        port: 
+        port:
           number: 80
-      weight: 50
-    - destination:
-        host: nginx-service
-        subset: v2
-        port: 
-          number: 80
-      weight: 50
