@@ -16,4 +16,4 @@ spec:
         consecutive5xxErrors: 2
         interval: 10s
         baseEjectionTime: 3m
-        # maxEjectionPercent: 100
+        maxEjectionPercent: 100
