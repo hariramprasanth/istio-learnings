@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: orders-load-balancer
+spec:
+  host: orders-service
+  trafficPolicy:
+      loadBalancer:
+        simple: RANDOM
+      outlierDetection:
+        baseEjectionTime: 20s
+        consecutive5xxErrors: 2
+        interval: 10s
+        maxEjectionPercent: 100

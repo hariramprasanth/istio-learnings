@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-deployment
+  labels:
+    app: customers-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customers
+  template:
+    metadata:
+      labels:
+        app: customers
+    spec:
+      containers:
+      - name: customers
+        image: hariramprasanth/demo-customers-service:1.0.6
+        ports:
+        - containerPort: 8080
+        env:
+          - name : ORDERS_SERVICE_BASE_PATH
+            value: orders-service
