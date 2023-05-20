@@ -16,6 +16,9 @@ spec:
     spec:
       containers:
       - name: orders
-        image: hariramprasanth/demo-orders-service:1.0.6
+        image: viren1990/orders:latest
+        env:
+          - name: TRACKING_SERVICE_BASE_URL
+            value: tracking-service
         ports:
         - containerPort: 9001
