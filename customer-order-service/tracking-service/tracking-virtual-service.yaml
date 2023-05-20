@@ -1,13 +1,13 @@
 kind: VirtualService
 apiVersion: networking.istio.io/v1beta1
 metadata:
-  name: orders-virtual-service
+  name: tracking-virtual-service
   labels:
-    virtaulservice: orders-virtual-service
+    virtualservice: tracking-virtual-service
 spec:
   http:
     - route:
         - destination:
-            host: orders-service
+            host: tracking-service
   hosts:
-    - orders-service
+    - tracking-service

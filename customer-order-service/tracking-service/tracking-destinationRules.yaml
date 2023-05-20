@@ -1,0 +1,6 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: tracking-destination-rule
+spec:
+  host: tracking-service
