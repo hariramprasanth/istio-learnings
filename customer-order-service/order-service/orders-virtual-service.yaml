@@ -9,5 +9,6 @@ spec:
     - route:
         - destination:
             host: orders-service
+      timeout: 10s
   hosts:
     - orders-service
