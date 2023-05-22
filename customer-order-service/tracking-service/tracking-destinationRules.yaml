@@ -6,8 +6,8 @@ spec:
   host: tracking-service
   trafficPolicy:
     outlierDetection:
-      consecutive5xxErrors: 1
-      interval: 10s
+      consecutive5xxErrors: 2
+      interval: 20s
       baseEjectionTime: 60s
       maxEjectionPercent: 100
       minHealthPercent: 0
