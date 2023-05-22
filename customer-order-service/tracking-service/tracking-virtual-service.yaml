@@ -9,5 +9,9 @@ spec:
     - route:
         - destination:
             host: tracking-service
+      retries:
+        attempts: 2
+        perTryTimeout: 10s
+        retryOn: connect-failure,refused-stream,503,500,502
   hosts:
     - tracking-service
