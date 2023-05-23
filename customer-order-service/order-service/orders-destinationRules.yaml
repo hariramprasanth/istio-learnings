@@ -5,6 +5,12 @@ metadata:
 spec:
   host: orders-service
   trafficPolicy:
+    # connectionPool:
+    #   tcp:
+    #     maxConnections: 50
+    #   http:
+    #     maxRequestsPerConnection: 1
+    #     http2MaxRequests: 1
     outlierDetection:
       consecutive5xxErrors: 3
       interval: 30s
