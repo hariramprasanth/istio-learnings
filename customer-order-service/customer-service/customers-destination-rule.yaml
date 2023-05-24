@@ -9,5 +9,4 @@ spec:
       tcp:
         maxConnections: 1
       http:
-        maxRequestsPerConnection: 1
-        http2MaxRequests: 1
+        http1MaxPendingRequests: 5      
