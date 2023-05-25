@@ -7,6 +7,8 @@ spec:
   trafficPolicy:
     connectionPool:
       tcp:
-        maxConnections: 1
+        maxConnections: 10
       http:
-        http1MaxPendingRequests: 5      
+        http1MaxPendingRequests: 1000
+        maxRequestsPerConnection: 10
+        # http2MaxRequests: 5      
