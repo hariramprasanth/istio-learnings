@@ -13,3 +13,7 @@ spec:
         host: customers-service
         port: 
           number: 80
+    fault:
+        delay:
+          percent: 100
+          fixedDelay: 10s
