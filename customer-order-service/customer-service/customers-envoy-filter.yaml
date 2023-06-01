@@ -1,0 +1,23 @@
+# apiVersion: networking.istio.io/v1alpha3
+# kind: EnvoyFilter
+# metadata:
+#   name: orders-service-envoy-filter
+# spec:
+#   workloadSelector:
+#     labels:
+#       app: customers-service
+#   configPatches:
+#     - applyTo: HTTP_ROUTE
+#       match:
+#         context: SIDECAR_OUTBOUND
+#         routeConfiguration:
+#           vhost:
+#             name: orders-service
+#       patch:
+#         operation: MERGE
+#         value:
+#           route:
+#             retry_policy:
+#               retry_back_off:
+#                 base_interval: "2s"
+#                 max_interval: "10s"
