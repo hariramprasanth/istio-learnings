@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: #{APP_NAME}#
+  namespace: #{APP_NAME_SPACE}#
+  labels:
+    app: #{APP_NAME}#
+spec:
+  replicas: #{REPLICAS_COUNT}#
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: #{APP_NAME}#
+  template:
+    metadata:
+      labels:
+        app: #{APP_NAME}#
+    spec:
+      serviceAccount: default
+      containers:
+        - name: #{APP_NAME}#
+          image: "#{ACR_URL}#/#{Build.Repository.Name}#:#{Build.BuildNumber}#"
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: #{APP_NAME}#-cm-volm-#{ENV}# 
+              mountPath: "/deployments/config/application-#{ENV}#.#{CONFIG_FILE_TYPE}#"
+              subPath: "application-#{ENV}#.#{CONFIG_FILE_TYPE}#" 
+              readOnly: true
+            - name: #{APP_NAME}#-common-cm-volm-#{ENV}# 
+              mountPath: "/deployments/config/application.#{CONFIG_FILE_TYPE}#"
+              subPath: "application.#{CONFIG_FILE_TYPE}#"
+              readOnly: true
+            - name: common-cm-volm-#{CONFIGGROUP}#-#{ENV}# 
+              mountPath: "/deployments/config/common-#{CONFIGGROUP}#-#{ENV}#.#{CONFIG_FILE_TYPE}#"
+              subPath: "common-#{CONFIGGROUP}#-#{ENV}#.#{CONFIG_FILE_TYPE}#"
+              readOnly: true
+            - name: #{APP_NAME}#-json-volm-#{ENV}# 
+              mountPath: "/deployments/config/#{ENV}#.json"
+              subPath: "#{ENV}#.json"
+              readOnly: true              
+          resources:
+            limits:
+              memory: "#{APP_CONTAINER_MEMORY}#"
+              cpu: "#{APP_CPU_LIMITS}#"
+            requests:
+              memory: "#{APP_CONTAINER_MEMORY}#"
+              cpu: "#{APP_CPU_REQUESTS}#"
+          ports:
+            - containerPort: #{APP_CONTAINER_PORT}#
+          env:
+            - name: profile
+              value: "#{ENV}#"
+            - name: filetype
+              value: "#{CONFIG_FILE_TYPE}#"
+            - name: group
+              value: "#{CONFIGGROUP}#"
+      imagePullSecrets:
+        - name: #{NONPROD_ACR_SECRET}#
+      volumes:
+        - name: #{APP_NAME}#-cm-volm-#{ENV}#
+          configMap:
+            name: #{APP_NAME}#-cm-#{ENV}#
+            items:
+              - key: application-#{ENV}#.#{CONFIG_FILE_TYPE}#
+                path: application-#{ENV}#.#{CONFIG_FILE_TYPE}#
+        - name: #{APP_NAME}#-common-cm-volm-#{ENV}#
+          configMap:
+            name: #{APP_NAME}#-common-cm-#{ENV}#
+            items:
+              - key: application.#{CONFIG_FILE_TYPE}#
+                path: application.#{CONFIG_FILE_TYPE}#
+        - name: common-cm-volm-#{CONFIGGROUP}#-#{ENV}#
+          configMap:
+            name: common-cm-#{CONFIGGROUP}#-#{ENV}#
+            items:
+              - key: common-#{CONFIGGROUP}#-#{ENV}#.#{CONFIG_FILE_TYPE}#
+                path: common-#{CONFIGGROUP}#-#{ENV}#.#{CONFIG_FILE_TYPE}#
+        - name: #{APP_NAME}#-json-volm-#{ENV}#
+          configMap:
+            name: #{APP_NAME}#-json-#{ENV}#
+            items:
+              - key: #{ENV}#.json
+                path: #{ENV}#.json
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: #{APP_NAME}#
+  namespace: #{APP_NAME_SPACE}#
+  labels:
+    app: #{APP_NAME}#
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: #{APP_CONTAINER_PORT}#
+    protocol: TCP
+    name: http-#{APP_NAME}#
+  selector:
+    app: #{APP_NAME}#
