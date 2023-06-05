@@ -9,6 +9,7 @@ imagePullPolicy: Always \
 \n            httpGet:\
 \n              path: /health\
 \n              port: 8080\
+
 END
 )
 echo "$vare"
