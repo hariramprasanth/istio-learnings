@@ -29,23 +29,3 @@ spec:
         image: nginx:1.15.12-alpine
         ports:
         - containerPort: 80
----
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: policy-app-2
-  namespace: default
-spec:
-  mtls:
-    mode: STRICT
-
----
-apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
-metadata:
-  name: app-2-destination-rule
-spec:
-  host: app-2-service
-  trafficPolicy:
-    tls:
-      mode: ISTIO_MUTUAL
