@@ -29,3 +29,16 @@ spec:
         image: nginx:1.15.12-alpine
         ports:
         - containerPort: 80
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: app-2-destination-rule
+spec:
+  host: app-2-service
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+### modes
+### DISABLE, SIMPLE, MUTUAL, ISTIO_MUTUAL
