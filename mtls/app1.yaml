@@ -30,3 +30,15 @@ spec:
         ports:
         - containerPort: 80
 ---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: app-1-destination-rule
+spec:
+  host: app-1-service
+  trafficPolicy:
+    tls:
+      mode: DISABLE
+
+### modes
+### DISABLE, SIMPLE, MUTUAL, ISTIO_MUTUAL
