@@ -1,6 +1,5 @@
 ## install istio
-curl -L https://istio.io/downloadIstio |  ISTIO_VERSION=1.14.6 TARGET_ARCH=x86_64 sh -
-
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.17.2 TARGET_ARCH=x86_64 sh -
 
 istioctl version --remote=false
 istioctl install --set profile=demo -y
@@ -19,3 +18,10 @@ istioctl dashboard prometheus
 
 ## port forwarding the product page
 kubectl port-forward service/productpage 9080:9080
+
+## Installation of ARGO-CD
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# ARGO-CD Dashboard
+kubectl port-forward service/argocd-server -n argocd  8080:443
