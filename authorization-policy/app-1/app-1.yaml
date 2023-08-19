@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-1-deployment
+  labels:
+    app: app-1-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-1
+  template:
+    metadata:
+      labels:
+        app: app-1
+    spec:
+      containers:
+      - name: app-1
+        image: hariramprasanth/my-nginx:v1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: app-1-service
+  name: app-1-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: http-app-1
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: app-1

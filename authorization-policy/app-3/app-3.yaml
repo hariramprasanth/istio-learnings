@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-3-deployment
+  labels:
+    app: app-3-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-3
+  template:
+    metadata:
+      labels:
+        app: app-3
+    spec:
+      containers:
+      - name: app-3
+        image: hariramprasanth/my-nginx:500-error
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: app-3-service
+  name: app-3-service
+spec:
+  type: ClusterIP
+  ports:
+  - name: http-app-3
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: app-3
