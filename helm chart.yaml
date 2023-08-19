@@ -1,0 +1,176 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName  }} 
+spec:
+  replicas: {{ .Values.replicaCount }}
+  {{- if not .Values.rollingStrategy.enabled }}  
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  {{- end}}
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      serviceAccount: default
+      {{- if .Values.appd.enabled }}
+      ### Java Agent as Init container AppD ###
+      initContainers:
+      - name: java-agent
+        image: docker.io/appdynamics/java-agent:23.5.0
+        command:
+        - sh
+        - -c
+        - >-
+          cp -r /opt/appdynamics/. /opt/temp &&
+          chown -R 1000 /opt/temp
+        volumeMounts:
+          - mountPath: /opt/temp
+            name: appd-agent-repo
+      ### APPD End of Init containers ### 
+      {{- end }}
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: "{{ .Values.appName }}-cm-volm-{{ .Values.env }}"
+              mountPath: "/deployments/config/application-{{ .Values.env }}.{{ .Values.configFileType }}"
+              subPath: "application-{{ .Values.env }}.{{ .Values.configFileType }}" 
+              readOnly: true
+            - name: "{{ .Values.appName }}-common-cm-volm-{{ .Values.env }}"
+              mountPath: "/deployments/config/application.{{ .Values.configFileType }}"
+              subPath: "application.{{ .Values.configFileType }}"
+              readOnly: true
+            - name: "common-cm-volm-{{ .Values.configGroup }}-{{ .Values.env }}"
+              mountPath: "/deployments/config/common-{{ .Values.configGroup }}-{{ .Values.env }}.{{ .Values.configFileType }}"
+              subPath: "common-{{ .Values.configGroup }}-{{ .Values.env }}.{{ .Values.configFileType }}"
+              readOnly: true
+            {{- if .Values.useJSONConfig }}
+            - name: "{{ .Values.appName }}-json-volm-{{ .Values.env }}"
+              mountPath: "/deployments/config/{{ .Values.env }}.json"
+              subPath: "{{ .Values.env }}.json"
+              readOnly: true    
+            {{- end }}
+            {{- if .Values.appd.enabled }}
+            - mountPath: /opt/appdynamics
+              name: appd-agent-repo
+            {{- end}}
+          resources:
+            limits:
+              memory: {{ .Values.resources.containerMemory }}
+              cpu:  {{ .Values.resources.cpuLimits }}
+            requests:
+              memory:  {{ .Values.resources.memoryRequests }}
+              cpu:  {{ .Values.resources.cpuRequests }}
+          ports:
+            - containerPort: {{ .Values.containerPort }}
+          env:
+            - name: profile
+              value: {{ .Values.env }}
+            - name: filetype
+              value: {{ .Values.configFileType }}
+            - name: group
+              value: {{ .Values.configGroup }}
+            {{- if .Values.appd.enabled }}
+            - name: JAVA_TOOL_OPTIONS
+              value: "-XX:InitialRAMPercentage=60.0 -XX:MaxRAMPercentage=60.0 -Dappdynamics.agent.accountAccessKey=$(APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY) -Dappdynamics.socket.collection.bci.enable=true -Dorg.osgi.framework.bootdelegation=com.singularity.* -javaagent:/opt/appdynamics/javaagent.jar"
+            - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: controller-secret
+                  key: controller-key
+            - name: APPDYNAMICS_AGENT_APPLICATION_NAME
+              value: {{ .Values.appd.appName}}
+            - name: APPDYNAMICS_AGENT_TIER_NAME
+              value: {{ .Values.appd.tierName}}
+            - name: APPDYNAMICS_JAVA_AGENT_REUSE_NODE_NAME_PREFIX
+              value: {{ .Values.appName }}
+            envFrom:
+            - configMapRef:
+                name: appd-agent-config
+            {{- end }}
+        {{- if .Values.opa.enabled }}
+        - name: opa
+          image: openpolicyagent/opa:0.33.0
+          volumeMounts:
+            - name: "{{ .Values.appName }}-opa-volm-{{ .Values.env }}"
+              mountPath: "/policies"
+              readOnly: true
+          resources:
+            limits:
+              memory: {{ .Values.opa.containerMemory }}
+            requests:
+              memory: {{ .Values.opa.containerMemory }}
+          ports:
+          - name: http
+            containerPort: {{ .Values.opa.containerPort }}
+          args:
+          - "run"
+          - "-s"  # exclude hidden dirs created by Kubernetes
+          - "-c"
+          - "/policies/config-{{ .Values.env }}.{{ .Values.configFileType }}"
+        {{- end }}
+      imagePullSecrets:
+        - name: {{ .Values.imageSecret }}
+      volumes:
+        - name: "{{ .Values.appName }}-cm-volm-{{ .Values.env }}"
+          configMap:
+            name: "{{ .Values.appName }}-cm-{{ .Values.env }}"
+            items:
+              - key: "application-{{ .Values.env }}.{{ .Values.configFileType }}"
+                path: "application-{{ .Values.env }}.{{ .Values.configFileType }}"
+        - name: "{{ .Values.appName }}-common-cm-volm-{{ .Values.env }}"
+          configMap:
+            name: "{{ .Values.appName }}-common-cm-{{ .Values.env }}"
+            items:
+              - key: "application.{{ .Values.configFileType }}"
+                path: "application.{{ .Values.configFileType }}"
+        - name: "common-cm-volm-{{ .Values.configGroup }}-{{ .Values.env }}"
+          configMap:
+            name:  "common-cm-{{ .Values.configGroup }}-{{ .Values.env }}"
+            items:
+              - key: "common-{{ .Values.configGroup }}-{{ .Values.env }}.{{ .Values.configFileType }}"
+                path: "common-{{ .Values.configGroup }}-{{ .Values.env }}.{{ .Values.configFileType }}"
+        {{- if .Values.useJSONConfig }}
+        - name: "{{ .Values.appName }}-json-volm-{{ .Values.env }}"
+          configMap:
+            name: "{{ .Values.appName }}-json-{{ .Values.env }}"
+            items:
+              - key: "{{ .Values.env }}.json"
+                path: "{{ .Values.env }}.json"
+        {{- end }}
+        {{- if .Values.appd.enabled }}
+        - name: appd-agent-repo
+          emptyDir: {}
+        {{- end }}
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.appName }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: {{ .Values.containerPort }}
+    protocol: TCP
+    name: "http-{{ .Values.appName }}"
+  selector:
+    app: {{ .Values.appName }}
