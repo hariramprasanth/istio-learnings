@@ -1,0 +1,48 @@
+
+# apiVersion: networking.istio.io/v1alpha3
+# kind: Gateway
+# metadata:
+#   name: canary-gateway
+# spec:
+#   selector:
+#     istio: ingressgateway 
+#   servers:
+#   - port:
+#       number: 80
+#       name: http
+#       protocol: HTTP
+#     hosts:
+#     - "*"
+# ---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: nginx-app-vs
+spec:
+  hosts:
+    - 'nginx-app'
+  http:
+  - route:
+    - destination:
+        host: nginx-app
+        subset: v1
+      weight: 90
+    - destination:
+        host: nginx-app
+        subset: v2
+      weight: 10
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: nginx-app-dr
+spec:
+  host: nginx-app
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
