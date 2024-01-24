@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+    name: my-dr
+spec:
+    host: httpbin.org
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 3
+        interval: 10s
+        baseEjectionTime: 1m
+        maxEjectionPercent: 100
+        minHealthPercent: 0     
